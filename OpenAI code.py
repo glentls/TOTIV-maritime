@@ -7,7 +7,7 @@ import pandas as pd
 df = pd.read_csv('training_data.csv')
 
 # Define OpenAI API key
-openai.api_key = "YOUR_API_KEY"
+openai.api_key = "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"
 
 # Define a function to classify severity
 def classify_severity(deficiency_text):
