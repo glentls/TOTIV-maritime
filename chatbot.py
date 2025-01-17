@@ -1,19 +1,9 @@
 import streamlit as st
-import openai
+from openai import OpenAI
 import os
 
-client = openai(
-    api_key=os.environ.get("OPENAI_API_KEY"), 
-)
-
-chat_completion = client.chat.completions.create(
-    messages=[
-        {
-            "role": "user",
-            "content": "Say this is a test",
-        }
-    ],
-    model="gpt-4o",
+client = OpenAI(
+  api_key="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"
 )
 
 st.sidebar.image(image="/Users/yixin/Downloads/Logo (1).png")
@@ -32,9 +22,15 @@ if "messages" not in st.session_state:
 user_input = st.text_input(label="", key="input", placeholder= "Type your message here...")
 
 if user_input: 
-    st.session_state.messages.append({"role": "user", "content": user_input})
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        store=True,
+        messages=[
+            {"role": "user", "content": "user_input"}
+        ]
+    )
 
-    chatbot_response = chat_completion(user_input)
+    chatbot_response = completion.choices[0].message
 
     st.session_state.messages.append({"role": "assistant", "content": chatbot_response})
 
