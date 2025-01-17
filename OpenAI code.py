@@ -1,37 +1,53 @@
-pip install openai 
-
-import openai
+from openai import OpenAI
 import pandas as pd
+import openpyxl
 
 # Load training data
-df = pd.read_csv('training_data.csv')
+df = pd.read_csv('train.csv')
+df2 = pd.read_csv(r"Datasets/psc_severity_test.csv")
+workbook = openpyxl.load_workbook(r"Datasets/submission_template.xlsx")
+sheet = workbook.active
 
 # Define OpenAI API key
-openai.api_key = "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"
+client = OpenAI(
+  api_key="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"
+)
 
 # Define a function to classify severity
 def classify_severity(deficiency_text):
-    prompt = f"""
-    You are an expert in classifying deficiencies based on severity levels.
-    Here are some examples:
+    prompt = "You are an expert in classifying deficiencies based on severity levels. " + \
+        "\n Here are some examples:" + \
+            "\n 1. " + df.iloc[0]['def_text'] + " -> " + df.iloc[0]['Consensus Severity'] + \
+                "\n 2. " + df.iloc[1]['def_text'] + " -> " + df.iloc[1]['Consensus Severity'] + \
+                    "\n 3. " + df.iloc[2]['def_text'] + " -> " + df.iloc[2]['Consensus Severity'] + \
+                        "Based on the above examples, classify the following deficiency: " + \
+                            deficiency_text + "in one word: Low, Medium, High"
 
-    1. "{df.iloc[0]['Deficiency Text']}" -> {df.iloc[0]['Consensus Severity']}
-    2. "{df.iloc[1]['Deficiency Text']}" -> {df.iloc[1]['Consensus Severity']}
-    3. "{df.iloc[2]['Deficiency Text']}" -> {df.iloc[2]['Consensus Severity']}
-    
-    Based on the above examples, classify the following deficiency:
-    "{deficiency_text}"
-    """
-
-    # Use OpenAI GPT model to classify
-    response = openai.Completion.create(
-        engine="text-davinci-003",
-        prompt=prompt,
-        max_tokens=50
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        store=True,
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
     )
 
     # Extract and return severity from the response
-    return response.choices[0].text.strip()
+    return completion.choices[0].message.content
+
+row_count = len(df)
+for i in range(row_count):
+    # Test the function with a new description
+    new_description = df2.iloc[i]['def_text']
+    severity = classify_severity(new_description)
+    print(f"Predicted Severity: {severity}")
+    if i % 100 == 0:
+        print(i)
+    sheet.insert_cols(3)
+    sheet["C2"] = df2.iloc[i - 1]['PscInspectionId']
+    sheet["C3"] = df2.iloc[i - 1]['deficiency_code']
+    sheet["C4"] = severity
+
+workbook.save(r"Datasets/submission_template.xlsx")
 
 # Test the function with a new description
 new_description = "Description of a new deficiency that involves critical issues."
