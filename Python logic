@@ -1,0 +1,43 @@
+from collections import Counter
+
+def derive_consensus_severity(sme_ratings):
+    """
+    Derive consensus severity based on SME ratings (Low, Medium, High).
+
+    Parameters:
+    sme_ratings (list): A list of severity ratings from SMEs (e.g., ['High', 'Medium', 'High']).
+
+    Returns:
+    str: The consensus severity rating ('Low', 'Medium', or 'High').
+    """
+    # Step 1: Count the frequency of each severity level
+    severity_counts = Counter(sme_ratings)
+    
+    # Step 2: Find the severity level with the highest frequency (majority vote)
+    most_common = severity_counts.most_common()
+    max_count = most_common[0][1]
+    
+    # Check for ties in the majority vote
+    tie_severities = [severity for severity, count in most_common if count == max_count]
+    
+    if len(tie_severities) == 1:
+        # Clear majority - return the most common severity
+        return tie_severities[0]
+    else:
+        # Tied vote - resolve based on a predefined severity hierarchy
+        hierarchy = {'Low': 1, 'Medium': 2, 'High': 3}
+        tie_severities.sort(key=lambda x: hierarchy[x])  # Sort by hierarchy
+        return tie_severities[-1]  # Return the highest severity in the tie
+
+# Example usage:
+if __name__ == "__main__":
+    # Example dataset
+    deficiencies = [
+        {"id": 1, "sme_ratings": ['High', 'Medium', 'High', 'High']},  # Clear majority
+        {"id": 2, "sme_ratings": ['Low', 'Medium', 'Medium', 'High']},  # Tie between Medium and Low
+        {"id": 3, "sme_ratings": ['Low', 'Low', 'Medium', 'High']},  # No clear majority
+    ]
+    
+    for deficiency in deficiencies:
+        consensus = derive_consensus_severity(deficiency["sme_ratings"])
+        print(f"Deficiency ID: {deficiency['id']}, Consensus Severity: {consensus}")
