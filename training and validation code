@@ -1,0 +1,19 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+# Load your dataset (replace 'your_file.csv' with your actual dataset file)
+df = pd.read_csv('your_file.csv')
+
+# Split the dataset into training and validation sets
+train, validation = train_test_split(df, test_size=0.2, random_state=42)
+
+# Save the training set to a CSV file
+train.to_csv('train.csv', index=False)
+
+# Save the validation set to a CSV file
+validation.to_csv('validation.csv', index=False)
+
+# Download the files to your local machine
+from google.colab import files
+files.download('train.csv')
+files.download('validation.csv')
